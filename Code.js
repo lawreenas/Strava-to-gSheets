@@ -33,8 +33,8 @@ function getStravaActivityData() {
     var row = sheet.getActiveCell().getRow();
     var col = sheet.getActiveCell().getColumn();
     
-    for(idx = col; idx > 0; idx--) {
-      var dateToGet = sheet.getRange(row - 2, idx).getValue();
+    for(colIdx = col; colIdx < 20; colIdx++) {
+      var dateToGet = sheet.getRange(row - 2, colIdx).getValue();
       
       if (!dateToGet) break;
       var activities = byDate[dateToGet];
@@ -46,9 +46,9 @@ function getStravaActivityData() {
             totals = updateTotals(totals, a.distance, a.elapsed_time, a.total_elevation_gain);
             data = data + printActivityData(a);
           })
-        sheet.getRange(row, idx).setValue(data);  
+        sheet.getRange(row, colIdx).setValue(data);  
       } else {
-        sheet.getRange(row, idx).setValue("-");
+        sheet.getRange(row, colIdx).setValue("-");
       }
     }
     
