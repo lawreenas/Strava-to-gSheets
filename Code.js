@@ -119,14 +119,6 @@ function getDuration(seconds) {
 
 // call the Strava API
 function callStravaAPI() {
-
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  var sheet = ss.getSheetByName('Strava');
-
-  var CLIENT_ID = String(sheet.getRange(1,1).getValue()); //'55641';
-  var CLIENT_SECRET = sheet.getRange(2,1).getValue(); // '456f50520af93dd69e8053ac91ef81b9b547a8b0';
-  
   
   // set up the service
   var service = getStravaService();
@@ -165,5 +157,37 @@ function callStravaAPI() {
     sheet.getActiveCell().setValue(authorizationUrl);
     
     Logger.log("Open the following URL and re-run the script: %s", authorizationUrl);
+  }
+}
+
+  
+// configure the service
+function getStravaService() {
+  
+   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  var sheet = ss.getSheetByName('Strava');
+
+  var id = String(sheet.getRange(1,1).getValue()); //'55641'; //
+  var secret = sheet.getRange(1,2).getValue(); // '456f50520af93dd69e8053ac91ef81b9b547a8b0'; //
+ 
+  return OAuth2.createService('Strava10')
+    .setAuthorizationBaseUrl('https://www.strava.com/oauth/authorize')
+    .setTokenUrl('https://www.strava.com/oauth/token')
+    .setClientId(id)
+    .setClientSecret(secret)
+    .setCallbackFunction('authCallback')
+    .setPropertyStore(PropertiesService.getUserProperties())
+    .setScope('activity:read_all');
+}
+
+// handle the callback
+function authCallback(request) {
+  var stravaService = getStravaService();
+  var isAuthorized = stravaService.handleCallback(request);
+  if (isAuthorized) {
+    return HtmlService.createHtmlOutput('Success! You can close this tab.');
+  } else {
+    return HtmlService.createHtmlOutput('Denied. You can close this tab');
   }
 }
