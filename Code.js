@@ -58,7 +58,7 @@ function getStravaActivityData() {
 
 function printActivityData(a) {
   return a.name + " \n" +
-    "🩴" + getDistance(a.distance) + " km \n" + 
+    "🩴" + getDistance(a.distance) + " km " + getPace(a.average_speed) + "/km \n" + 
     "❤️" + a.average_heartrate + " bpm \n" +
     "⛰️" + a.total_elevation_gain + " m+ \n" + 
     "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
@@ -92,13 +92,18 @@ function writeTotals(row, totals) {
   sheet.getRange(row, 11).setValue(totals.elevation);  
 }
 
+// Convert min/s -> min/km
 function getPace(metersPerSec) {
-  return metersPerSec;
+  var secondsPerKm = parseInt(1/(metersPerSec/1000));
+  var paceMin = Math.floor(secondsPerKm/60);
+  var paceSec = Math.floor(secondsPerKm-paceMin*60);
+  
+  return paceMin + ":" + (paceSec < 10 ? "0"+paceSec : paceSec);
 }
 
 
 function getDistance(stravaDistance)  {
- return Number.parseFloat(stravaDistance / 1000).toPrecision(4);
+ return Number.parseFloat(stravaDistance / 1000).toPrecision(3);
 }
 
 function getDuration(seconds) {
