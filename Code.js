@@ -57,10 +57,25 @@ function getStravaActivityData() {
 }
 
 function printActivityData(a) {
+  if (a.type == "Run") {
+    return printRun(a); 
+  }
+  if (a.type == "Workout") {
+    return printWorkout(a);
+  }
+  return printRun(a);
+}
+
+function printRun(a) {
   return a.name + " \n" +
     "🩴" + getDistance(a.distance) + " km " + getPace(a.average_speed) + "/km \n" + 
     "❤️" + a.average_heartrate + " bpm \n" +
     "⛰️" + a.total_elevation_gain + " m+ \n" + 
+    "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+}
+
+function printWorkout(a) {
+    return a.name + " \n" +
     "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
 }
     
@@ -116,6 +131,13 @@ function getDuration(seconds) {
     if (seconds < 10) {seconds = "0"+seconds;}
     return hours+'h '+minutes+'m '+seconds+"s";
 }
+
+
+
+
+// STRAVA
+
+
 
 // call the Strava API
 function callStravaAPI() {
