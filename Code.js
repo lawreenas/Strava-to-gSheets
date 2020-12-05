@@ -32,9 +32,10 @@ function getStravaActivityData() {
     var byDate = groupStravaActivitiesByDay(stravaData);
     var row = sheet.getActiveCell().getRow();
     var col = sheet.getActiveCell().getColumn();
-    
+
     for(colIdx = col; colIdx < 20; colIdx++) {
       var dateToGet = sheet.getRange(row - 2, colIdx).getValue();
+      var currentCellValue = sheet.getRange(row, colIdx).getValue();
       
       if (!dateToGet) break;
       var activities = byDate[dateToGet];
@@ -44,7 +45,8 @@ function getStravaActivityData() {
         activities.forEach(
           function(a){
             totals = updateTotals(totals, a.distance, a.elapsed_time, a.total_elevation_gain);
-            data = data + printActivityData(a);
+            
+            data = data + printActivityData(a, currentCellValue);
           })
         sheet.getRange(row, colIdx).setValue(data);  
       } else {
@@ -56,9 +58,13 @@ function getStravaActivityData() {
   }
 }
 
-function printActivityData(a) {
+function printActivityData(a, currentCellValue) {
   if (a.type == "Run") {
-    return printRun(a); 
+    var laps = "";
+    if (a.workout_type == 3 || currentCellValue.includes("reniruote")) {
+      laps = printLaps(a.id);
+    }
+    return printRun(a) + laps; 
   }
   if (a.type == "Workout") {
     return printWorkout(a);
@@ -72,6 +78,26 @@ function printRun(a) {
     "❤️" + getHr(a.average_heartrate) + " bpm \n" +
     "⛰️" + a.total_elevation_gain + " m+ \n" + 
     "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+}
+
+function printLaps(activityId) {
+  var laps = fetchRunLaps(activityId);
+  var lapData = "Laps:\n";
+  
+  laps.forEach(
+    function(lap){
+      lapData = lapData + printLap(lap);
+    }
+  );
+  return lapData;
+}
+
+function printLap(lap) {
+  return lap.lap_index + ": " +
+    getDistance(lap.distance) + " km " +
+    getPace(lap.average_speed) + "/km " +
+    getHr(lap.average_heartrate) + "/" + getHr(lap.max_heartrate) + " bpm" +
+    "\n";
 }
 
 function printWorkout(a) {
@@ -137,8 +163,9 @@ function getHr(hr) {
 }
 
 
+// *******************************
 // STRAVA
-
+// *******************************
 
 
 // call the Strava API
@@ -150,11 +177,12 @@ function callStravaAPI() {
   if (service.hasAccess()) {
     Logger.log('App has access.');
     
-    var epochNow = Math.fround(Date.now()/1000);
-    var epochWeekAgo = epochNow - 691200; //-8 days
+    var till = Math.fround(Date.now()/1000);
+    var from = till - 691200; //-8 days
+    var max = 30;
   
     var endpoint = 'https://www.strava.com/api/v3/athlete/activities';
-    var params = '?before=' + epochNow + '&after=' + epochWeekAgo + '&per_page=30';
+    var params = '?before=' + till + '&after=' + from + '&per_page=30';
 
     var headers = {
       Authorization: 'Bearer ' + service.getAccessToken()
@@ -184,12 +212,31 @@ function callStravaAPI() {
   }
 }
 
+function fetchRunLaps(id) {
+   var service = getStravaService();
+  
+    var endpoint = 'https://www.strava.com/api/v3/activities/' + id + '/laps';
+    var params = '';
+
+    var headers = {
+      Authorization: 'Bearer ' + service.getAccessToken()
+    };
+    
+    var options = {
+      headers: headers,
+      method : 'GET',
+      muteHttpExceptions: true
+    };
+    
+    var response = JSON.parse(UrlFetchApp.fetch(endpoint + params, options));
+    
+    return response;  
+}
   
 // configure the service
 function getStravaService() {
   
-   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();  
   var sheet = ss.getSheetByName('Strava');
 
   var id = String(sheet.getRange(1,1).getValue()); //'55641'; //
