@@ -93,10 +93,10 @@ function printLaps(activityId) {
 }
 
 function printLap(lap) {
-  return lap.lap_index + ": " +
-    getDistance(lap.distance) + " km " +
+  return "  - " +
+//    getDistance(lap.distance) + " km " +
     getPace(lap.average_speed) + "/km " +
-    getHr(lap.average_heartrate) + "/" + getHr(lap.max_heartrate) + " bpm" +
+    "❤️" + getHr(lap.average_heartrate) + "/" + getHr(lap.max_heartrate) +
     "\n";
 }
 
@@ -144,7 +144,7 @@ function getPace(metersPerSec) {
 
 
 function getDistance(stravaDistance)  {
- return Number.parseFloat(stravaDistance / 1000).toPrecision(3);
+ return Number.parseFloat(stravaDistance / 1000).toFixed(2);
 }
 
 function getDuration(seconds) {
@@ -159,7 +159,7 @@ function getDuration(seconds) {
 }
 
 function getHr(hr) {
- return Math.round(hr); 
+  return hr ? Math.round(hr) : "--"; 
 }
 
 
@@ -242,7 +242,7 @@ function getStravaService() {
   var id = String(sheet.getRange(1,1).getValue()); //'55641'; //
   var secret = sheet.getRange(1,2).getValue(); // '456f50520af93dd69e8053ac91ef81b9b547a8b0'; //
  
-  return OAuth2.createService('Strava10')
+  return OAuth2.createService('Strava')
     .setAuthorizationBaseUrl('https://www.strava.com/oauth/authorize')
     .setTokenUrl('https://www.strava.com/oauth/token')
     .setClientId(id)
