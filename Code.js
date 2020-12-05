@@ -178,7 +178,7 @@ function callStravaAPI() {
     Logger.log('App has access.');
     
     var till = Math.fround(Date.now()/1000);
-    var from = till - 691200; //-8 days
+    var from = till - 1209600; //-14 days
     var max = 30;
   
     var endpoint = 'https://www.strava.com/api/v3/athlete/activities';
