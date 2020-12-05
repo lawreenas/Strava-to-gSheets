@@ -69,7 +69,7 @@ function printActivityData(a) {
 function printRun(a) {
   return a.name + " \n" +
     "🩴" + getDistance(a.distance) + " km " + getPace(a.average_speed) + "/km \n" + 
-    "❤️" + a.average_heartrate + " bpm \n" +
+    "❤️" + getHr(a.average_heartrate) + " bpm \n" +
     "⛰️" + a.total_elevation_gain + " m+ \n" + 
     "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
 }
@@ -132,7 +132,9 @@ function getDuration(seconds) {
     return hours+'h '+minutes+'m '+seconds+"s";
 }
 
-
+function getHr(hr) {
+ return Math.round(hr); 
+}
 
 
 // STRAVA
