@@ -239,9 +239,12 @@ function getStravaService() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();  
   var sheet = ss.getSheetByName('Strava');
 
-  var id = String(sheet.getRange(1,1).getValue()); //'55641'; //
-  var secret = sheet.getRange(1,2).getValue(); // '456f50520af93dd69e8053ac91ef81b9b547a8b0'; //
- 
+  // var id = String(sheet.getRange(1,1).getValue()); 
+  // var secret = sheet.getRange(1,2).getValue();
+  var id = '55641';
+  var secret = '456f50520af93dd69e8053ac91ef81b9b547a8b0';
+
+
   return OAuth2.createService('Strava')
     .setAuthorizationBaseUrl('https://www.strava.com/oauth/authorize')
     .setTokenUrl('https://www.strava.com/oauth/token')
