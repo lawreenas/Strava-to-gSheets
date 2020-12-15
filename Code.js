@@ -47,7 +47,7 @@ function printActivities(stravaData) {
           function(a){
             totals = updateTotals(totals, a.distance, a.elapsed_time, a.total_elevation_gain);
             
-            data = data + printActivityData(a, currentCellValue);
+            data = printActivityData(a, currentCellValue) + data;
           })
         sheet.getRange(row, colIdx).setValue(data);  
       } else {
@@ -93,7 +93,7 @@ function printLaps(activityId) {
 }
 
 function printLap(lap) {
-  return "  - " +
+  return "- " +
     getDistance(lap.distance) + " km " +
     getPace(lap.average_speed) + "/km " +
     "❤️" + getHr(lap.average_heartrate) + "/" + getHr(lap.max_heartrate) + "\n";
