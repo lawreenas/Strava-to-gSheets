@@ -1,6 +1,7 @@
 // Taken from: https://www.benlcollins.com/spreadsheets/strava-api-with-google-sheets/
 // Strava API: https://developers.strava.com/docs/reference/#api-Activities-getLoggedInAthleteActivities
 // OAuth Library: 1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF
+// Version 1.1
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -45,9 +46,10 @@ function printActivities(stravaData) {
         var data = "";
         activities.forEach(
           function(a){
-            totals = updateTotals(totals, a.distance, a.elapsed_time, a.total_elevation_gain);
-            
-            data = printActivityData(a, currentCellValue) + data;
+            if (isRunActivity(a)) {
+              totals = updateTotals(totals, a.distance, a.elapsed_time, a.total_elevation_gain);
+            }
+            data = printActivityData(a, currentCellValue) + "\n" + data;
           })
         sheet.getRange(row, colIdx).setValue(data);  
       } else {
@@ -58,8 +60,11 @@ function printActivities(stravaData) {
     writeTotals(row, totals);
 }
 
+function isRunActivity(a) {
+  return a.type == "Run";
+}
 function printActivityData(a, currentCellValue) {
-  if (a.type == "Run") {
+  if (isRunActivity(a)) {
     var laps = "";
     if (a.workout_type == 3 || currentCellValue.includes("reniruote")) {
       laps = printLaps(a.id);
