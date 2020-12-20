@@ -1,7 +1,7 @@
 // Taken from: https://www.benlcollins.com/spreadsheets/strava-api-with-google-sheets/
 // Strava API: https://developers.strava.com/docs/reference/#api-Activities-getLoggedInAthleteActivities
 // OAuth Library: 1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF
-// Version 1.1
+// Version 1.2
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -63,6 +63,19 @@ function printActivities(stravaData) {
 function isRunActivity(a) {
   return a.type == "Run";
 }
+
+function isWorkoutActivity(a) {
+  return a.type == "Workout";
+}
+
+function isSwim(a) {
+    return a.type == "Swim";
+}
+
+function isRide(a) {
+    return a.type == "Ride";
+}
+
 function printActivityData(a, currentCellValue) {
   if (isRunActivity(a)) {
     var laps = "";
@@ -71,8 +84,14 @@ function printActivityData(a, currentCellValue) {
     }
     return printRun(a) + laps; 
   }
-  if (a.type == "Workout") {
+  if (isWorkoutActivity(a)) {
     return printWorkout(a);
+  }
+  if (isSwim(a)) {
+    return printSwim(a);
+  }
+  if (isRide(a)) {
+    return printRide(a);
   }
   return printRun(a);
 }
@@ -109,6 +128,21 @@ function printWorkout(a) {
       "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
 }
     
+function printSwim(a) {
+  return a.name + " \n" +
+    "🌊" + a.distance + " m " + getSwimPace(a.average_speed) + "/100m \n" + 
+    "❤️" + getHr(a.average_heartrate) + " bpm \n" +
+    "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+}
+
+function printRide(a) {
+    return a.name + " \n" +
+    "🚴" + getDistance(a.distance) + " km " + getSpeed(a.average_speed) + "km/h \n" + 
+    "❤️" + getHr(a.average_heartrate) + " bpm  \n" +
+    "⛰️" + a.total_elevation_gain + " m+ " + " 🔋" + a.average_watts +"w \n" + 
+    "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+}
+
 function groupStravaActivitiesByDay(stravaData) {
   var byDate = {};
   stravaData.map(function(a) {
@@ -137,15 +171,29 @@ function writeTotals(row, totals) {
   sheet.getRange(row, 11).setValue(totals.elevation);  
 }
 
-// Convert min/s -> min/km
-function getPace(metersPerSec) {
-  var secondsPerKm = parseInt(1/(metersPerSec/1000));
-  var paceMin = Math.floor(secondsPerKm/60);
-  var paceSec = Math.floor(secondsPerKm-paceMin*60);
+function secondsToTime(totalSeconds) {
+  var min = Math.floor(totalSeconds/60);
+  var sec = Math.floor(totalSeconds-min*60);
   
-  return paceMin + ":" + (paceSec < 10 ? "0"+paceSec : paceSec);
+  return min + ":" + (sec < 10 ? "0"+sec : sec);
 }
 
+// Convert m/s -> min/km
+function getPace(metersPerSec) {
+  var secondsPerKm = parseInt(1/(metersPerSec/1000));
+  return secondsToTime(secondsPerKm);
+}
+
+// Convert m/s -> min/100m
+function getSwimPace(metersPerSec) {
+  var secondsPerKm = parseInt(1/(metersPerSec/100));
+  return secondsToTime(secondsPerKm);
+}
+
+// Convert m/s -> km/h
+function getSpeed(metersPerSec) {
+  return Number.parseFloat(metersPerSec * 3.6).toFixed(2);
+}
 
 function getDistance(stravaDistance)  {
  return Number.parseFloat(stravaDistance / 1000).toFixed(2);
@@ -185,7 +233,7 @@ function callStravaAPI() {
     var max = 30;
   
     var endpoint = 'https://www.strava.com/api/v3/athlete/activities';
-    var params = '?before=' + till + '&after=' + from + '&per_page=30';
+    var params = '?before=' + till + '&after=' + from + '&per_page=' + max;
 
     var headers = {
       Authorization: 'Bearer ' + service.getAccessToken()
