@@ -1,7 +1,7 @@
 // Taken from: https://www.benlcollins.com/spreadsheets/strava-api-with-google-sheets/
 // Strava API: https://developers.strava.com/docs/reference/#api-Activities-getLoggedInAthleteActivities
 // OAuth Library: 1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF
-// Version 1.2
+// Version 1.3
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -47,7 +47,7 @@ function printActivities(stravaData) {
         activities.forEach(
           function(a){
             if (isRunActivity(a)) {
-              totals = updateTotals(totals, a.distance, a.elapsed_time, a.total_elevation_gain);
+              totals = updateTotals(totals, a.distance, a.moving_time, a.total_elevation_gain);
             }
             data = printActivityData(a, currentCellValue) + "\n" + data;
           })
@@ -73,7 +73,7 @@ function isSwim(a) {
 }
 
 function isRide(a) {
-    return a.type == "Ride";
+    return a.type == "Ride" || a.type == "VirtualRide";
 }
 
 function printActivityData(a, currentCellValue) {
@@ -98,10 +98,10 @@ function printActivityData(a, currentCellValue) {
 
 function printRun(a) {
   return a.name + " \n" +
-    "🩴" + getDistance(a.distance) + " km " + getPace(a.average_speed) + "/km \n" + 
+    "👟" + getDistance(a.distance) + " km " + getPace(a.average_speed) + "/km \n" + 
     "❤️" + getHr(a.average_heartrate) + " bpm \n" +
     "⛰️" + a.total_elevation_gain + " m+ \n" + 
-    "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+    "⏱" + getDuration(a.moving_time)+ " \n\n"; 
 }
 
 function printLaps(activityId) {
@@ -125,14 +125,14 @@ function printLap(lap) {
 
 function printWorkout(a) {
     return a.name + " \n" +
-      "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+      "⏱" + getDuration(a.moving_time)+ " \n\n"; 
 }
     
 function printSwim(a) {
   return a.name + " \n" +
     "🌊" + a.distance + " m " + getSwimPace(a.average_speed) + "/100m \n" + 
     "❤️" + getHr(a.average_heartrate) + " bpm \n" +
-    "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+    "⏱" + getDuration(a.moving_time)+ " \n\n"; 
 }
 
 function printRide(a) {
@@ -140,7 +140,7 @@ function printRide(a) {
     "🚴" + getDistance(a.distance) + " km " + getSpeed(a.average_speed) + "km/h \n" + 
     "❤️" + getHr(a.average_heartrate) + " bpm  \n" +
     "⛰️" + a.total_elevation_gain + " m+ " + " 🔋" + a.average_watts +"w \n" + 
-    "⏱" + getDuration(a.elapsed_time)+ " \n\n"; 
+    "⏱" + getDuration(a.moving_time)+ " \n\n"; 
 }
 
 function groupStravaActivitiesByDay(stravaData) {
@@ -199,8 +199,8 @@ function getDistance(stravaDistance)  {
  return Number.parseFloat(stravaDistance / 1000).toFixed(2);
 }
 
-function getDuration(seconds) {
-    var sec_num = parseInt(seconds, 10);
+function getDuration(activity_seconds) {
+    var sec_num = parseInt(activity_seconds, 10);
     var hours   = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
     var seconds = sec_num - (hours * 3600) - (minutes * 60);
